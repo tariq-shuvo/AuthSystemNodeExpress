@@ -3,6 +3,10 @@ var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 
+// Connect Database
+const connectDatabase = require('./config/db')
+connectDatabase()
+
 // All Of the routes have defined for rest api
 var authRouter = require('./routes/api/auth')
 var categoryRouter = require('./routes/api/categories')

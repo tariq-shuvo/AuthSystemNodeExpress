@@ -1,0 +1,3 @@
+{
+    "mongoURI": "mongodb+srv://ecommerceApi:ecommerceApi123@cluster0-ve84g.mongodb.net/test?retryWrites=true&w=majority"
+}
