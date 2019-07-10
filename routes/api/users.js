@@ -362,7 +362,7 @@ router.post(
 
       password = await bcrypt.hash(password, salt)
 
-      // Update new user password in the database
+      // Update new password of user in the database
       await User.updateOne(
         {_id: user_code},
         {
