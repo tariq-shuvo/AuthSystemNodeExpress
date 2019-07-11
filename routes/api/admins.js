@@ -9,8 +9,8 @@ const config = require('config')
 
 // Express validator load
 const {check, validationResult} = require('express-validator')
-// Load User Model
-const User = require('../../models/User')
+// Load Admin Model
+const Admin = require('../../models/Admin')
 // Load Bcryptjs for password encryption
 const bcrypt = require('bcryptjs')
 // Load gravatar for auto get image from email address
@@ -24,15 +24,15 @@ const sendEmail = require('../../email/nodemailer-email')
 // Load auth middleware
 const auth = require('../../middleware/auth/user')
 
-// @route GET api/user
-// @desc  Fetch user information
+// @route GET api/admin
+// @desc  Fetch admin information
 // @access Public
 
 router.get('/', auth, async (req, res) => {
   try {
-    const userid = req.user.id
+    const adminid = req.user.id
 
-    if (req.user.type !== 'user') {
+    if (req.user.type !== 'admin') {
       return res.status(401).send({
         errors: [
           {
@@ -42,7 +42,7 @@ router.get('/', auth, async (req, res) => {
       })
     }
 
-    let user = await User.findOne({_id: userid})
+    let admin = await Admin.findOne({_id: adminid})
       .select([
         '-password',
         '-isEmailVerified',
@@ -56,7 +56,7 @@ router.get('/', auth, async (req, res) => {
         'district',
         'thana'
       ])
-    return res.status(200).json(user)
+    return res.status(200).json(admin)
   } catch (err) {
     console.error(err.message)
 
@@ -64,8 +64,8 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
-// @route POST api/user
-// @desc Register User Information
+// @route POST api/admin
+// @desc Register Admin Information
 // @access Public
 
 router.post(
@@ -93,7 +93,7 @@ router.post(
       })
     }
 
-    // Get POST input from user
+    // Get POST input from admin
     const {firstname, lastname, email, password} = req.body
 
     // Generate unique email verification code
@@ -101,12 +101,12 @@ router.post(
 
     try {
       // Check registration email exsist or not
-      let user = await User.findOne({
+      let admin = await Admin.findOne({
         email
       })
 
       // Generate error is email already exist
-      if (user) {
+      if (admin) {
         return res.status(400).send({
           errors: [
             {
@@ -123,8 +123,8 @@ router.post(
         dd: 'mm'
       })
 
-      // Create user instance for database save
-      user = new User({
+      // Create admin instance for database save
+      admin = new Admin({
         firstname,
         lastname,
         email,
@@ -136,14 +136,14 @@ router.post(
       // Password encryption process using bcryptjs
       const salt = await bcrypt.genSalt(10)
 
-      user.password = await bcrypt.hash(password, salt)
+      admin.password = await bcrypt.hash(password, salt)
 
       // General information for email verification link
       const mailData = {
         email,
         verificationLink: `${config.get(
           'baseURL'
-        )}/api/user/email/verify/${verificationCode}`,
+        )}/api/admin/email/verify/${verificationCode}`,
         subject: 'Email verification link'
       }
 
@@ -152,10 +152,10 @@ router.post(
         sendEmail(mailData, resolve, reject)
       })
 
-      // If email sending done then save the user data show success message else error message will be displayed
+      // If email sending done then save the admin data show success message else error message will be displayed
       sendingStatus.then(
         async resolve => {
-          await user.save()
+          await admin.save()
           return res.status(200).send({
             success: [
               {
@@ -180,7 +180,7 @@ router.post(
   }
 )
 
-// @route  GET api/user/verify/email/:verificationCode
+// @route  GET api/admin/verify/email/:verificationCode
 // @desc   Email verification code check and vefification
 // @access Public
 
@@ -190,12 +190,12 @@ router.get('/verify/email/:verificationCode', async (req, res) => {
 
   try {
     // Check verification link
-    let verificationCodeExistance = await User.findOne({
+    let verificationCodeExistance = await Admin.findOne({
       emailVerificationCode
     })
 
     // If verification link not matched
-    if (!verificationCodeExistance) {
+    if (!verificationCodeExistance || emailVerificationCode == null) {
       return res.status(400).send({
         errors: [
           {
@@ -205,19 +205,19 @@ router.get('/verify/email/:verificationCode', async (req, res) => {
       })
     }
 
-    // Get user id accoring to emailVerificationCode
-    const user_id = verificationCodeExistance.id
+    // Get admin id accoring to emailVerificationCode
+    const admin_id = verificationCodeExistance.id
 
     // Make email verification
-    let user = await User.updateOne(
+    let admin = await Admin.updateOne(
       {emailVerificationCode},
       {isEmailVerified: true, emailVerificationCode: null}
     )
 
     let payload = {
-      user: {
-        id: user_id,
-        type: 'user'
+      admin: {
+        id: admin_id,
+        type: 'admin'
       }
     }
 
@@ -245,7 +245,7 @@ router.get('/verify/email/:verificationCode', async (req, res) => {
   }
 })
 
-// @route  POST api/user/password/forgot
+// @route  POST api/admin/password/forgot
 // @desc   Password reset email check and verification link sent
 // @access Public
 
@@ -267,12 +267,12 @@ router.post(
 
     try {
       //Check forgot email is exist or not
-      let user = await User.findOne({
+      let admin = await Admin.findOne({
         email
       })
 
-      //Show error email used user not found
-      if (!user) {
+      //Show error email used admin not found
+      if (!admin) {
         return res.status(400).send({
           errors: [
             {
@@ -290,7 +290,7 @@ router.post(
         email,
         verificationLink: `${config.get(
           'baseURL'
-        )}/api/user/password/reset/${verificationCode}`,
+        )}/api/admin/password/reset/${verificationCode}`,
         subject: 'Password reset link'
       }
 
@@ -302,7 +302,7 @@ router.post(
       // If email sending done then save the user data show success message else error message will be displayed
       sendingStatus.then(
         async resolve => {
-          await User.updateOne({email}, {passwordResetCode: verificationCode})
+          await Admin.updateOne({email}, {passwordResetCode: verificationCode})
           return res.status(200).send({
             success: [
               {
@@ -327,7 +327,7 @@ router.post(
   }
 )
 
-// @route  GET api/user/password/reset/:verificationCode
+// @route  GET api/admin/password/reset/:verificationCode
 // @desc   Password reset link check and define password reset user
 // @access Public
 
@@ -335,7 +335,7 @@ router.get('/password/reset/:verificationCode', async (req, res) => {
   const passwordResetCode = req.params.verificationCode
 
   try {
-    let verificationCodeExistance = await User.findOne({
+    let verificationCodeExistance = await Admin.findOne({
       passwordResetCode
     })
 
@@ -349,12 +349,12 @@ router.get('/password/reset/:verificationCode', async (req, res) => {
       })
     }
 
-    let user = await User.findOne({passwordResetCode}, [
+    let admin = await Admin.findOne({passwordResetCode}, [
       'id',
       'passwordResetCode'
     ])
 
-    return res.json(user)
+    return res.json(admin)
   } catch (err) {
     console.log(err.message)
 
@@ -363,8 +363,8 @@ router.get('/password/reset/:verificationCode', async (req, res) => {
   }
 })
 
-// @route  POST api/user/password/reset
-// @desc   Password reset code, user id check and set new password
+// @route  POST api/admin/password/reset
+// @desc   Password reset code, admin id check and set new password
 // @access Public
 
 router.post(
@@ -403,13 +403,13 @@ router.post(
     let {user_code, reset_code, password, confirmPassword} = req.body
 
     try {
-      //Check reset code and user id valid or not
-      const user = await User.findOne().and([
+      //Check reset code and admin id valid or not
+      const admin = await Admin.findOne().and([
         {_id: user_code},
         {passwordResetCode: reset_code}
       ])
 
-      if (!user) {
+      if (!admin) {
         return res.status(400).send({
           errors: [
             {
@@ -424,8 +424,8 @@ router.post(
 
       password = await bcrypt.hash(password, salt)
 
-      // Update new password of user in the database
-      await User.updateOne(
+      // Update new password of admin in the database
+      await Admin.updateOne(
         {_id: user_code},
         {
           password: password,

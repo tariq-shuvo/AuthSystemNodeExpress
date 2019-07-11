@@ -5,12 +5,25 @@ const ContactInfoScheme = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user'
   },
-  phone: {
-    type: Number,
-    maxlength: 12,
-    required: true,
-    default: null
-  },
+  phone: [
+    {
+      number: {
+        type: Number,
+        maxlength: 12,
+        required: true,
+        default: null
+      },
+      verificationCode: {
+        type: Number,
+        default: null
+      },
+      status: {
+        type: Boolean,
+        default: false,
+        require: true
+      }
+    }
+  ],
   address: {
     type: String,
     required: true

@@ -9,6 +9,10 @@ const SubCategorySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  icon: {
+    type: String,
+    default: null
+  },
   date: {
     type: Date,
     default: Date.now
