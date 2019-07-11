@@ -1,12 +1,12 @@
 {
-    "mongoURI": "mongodb+srv://ecommerceApi:ecommerceApi123@cluster0-ve84g.mongodb.net/test?retryWrites=true&w=majority",
+    "mongoURI": "",
     "mailAuth": {
-        "email": "tariqul.freelancer@gmail.com",
-        "password": "Test10043!"
+        "email": "",
+        "password": ""
     },
     "baseURL": "http://localhost:3000",
     "jwt": {
-        "secrect": "Hello10043!@##$%^",
-        "expire": 360000
+        "secrect": "",
+        "expire": 
     }
 }
